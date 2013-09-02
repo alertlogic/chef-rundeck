@@ -46,6 +46,8 @@ default['rundeck']['admin']['username']           = 'admin'
 default['rundeck']['admin']['password']           = 'a73e319b433528eaa646' # Override this!
 default['rundeck']['admin']['ssh_key']            = ''
 
+# Rundeck 'admin' users
+default['rundeck']['admins'] = %w{}
 
 # Mail data bag
 default['rundeck']['mail']          = {

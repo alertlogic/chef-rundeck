@@ -164,6 +164,16 @@ rundeck_user adminobj['username'] do
 	action :create
 end
 
+node['rundeck']['admins'].each do |user|
+  pass = data_bag_item('users', user)
+  rundeck_user user do
+    password pass['auth_basic']
+    encryption 'httppass'
+    roles %w{ user admin architect deploy build }
+    action :create
+  end
+end
+
 # Log rotation
 logrotate_app 'rundeck' do
   path '/var/log/rundeck/*.log'
