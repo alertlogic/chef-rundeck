@@ -20,6 +20,9 @@
 #
 
 default['rundeck']['ssh']['user'] = 'rundeck-ssh'
-default['rundeck']['ssh']['user_ssh_public_key'] = ""
+default['rundeck']['ssh']['user_uid'] = 9998
+default['rundeck']['ssh']['user_gid'] = 9998
+default['rundeck']['ssh']['user_pub_key'] = ""
+
 default['rundeck']['ssh']['timeout'] = 30000
 default['rundeck']['ssh']['port'] = 22
