@@ -20,3 +20,10 @@
 default['rundeck']['chef']['port']        = 9998
 default['rundeck']['chef']['client_key']  = ''
 default['rundeck']['chef']['client_name'] = ''
+
+default['rundeck']['chef']['init.d']['name'] = 'chef-rundeck'
+default['rundeck']['chef']['init.d']['user'] = 'rundeck'
+default['rundeck']['chef']['init.d']['runlevels'] = '345'
+default['rundeck']['chef']['init.d']['startorder'] = '89'
+default['rundeck']['chef']['init.d']['stoporder'] = '11'
+default['rundeck']['chef']['init.d']['logfile'] = '/var/log/rundeck/chef-rundeck.log'
