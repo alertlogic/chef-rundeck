@@ -100,6 +100,8 @@ def create_auth_line(username, password, encryption, roles)
 		pass = 'MD5:' + Digest::MD5.hexdigest(password)
 	when 'plain'
 		pass = password
+  when 'httppass'
+    pass = 'CRYPT:' + password
 	end
 	"#{username}: #{pass},#{roles.join(',')}"
 end

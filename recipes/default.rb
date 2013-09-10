@@ -73,7 +73,7 @@ end
 
 # Erase the default realm.properties after package install, we manage that
 file '/etc/rundeck/realm.properties' do
-	action :nothing
+	action :delete
 end
 
 if Chef::Config[:solo]
@@ -137,16 +137,17 @@ template '/etc/rundeck/profile' do
 	notifies :restart, 'service[rundeckd]'		
 end
 
+## don't need to override these files
 # Stub files from the cookbook, override with chef-rewind
-%w{ log4j.properties jaas-loginmodule.conf apitoken.aclpolicy admin.aclpolicy }.each do |cf|
-	cookbook_file "/etc/rundeck/#{cf}" do
-		source cf
-		owner 'rundeck'
-		group 'rundeck'
-		mode 00644
-		action :create
-	end
-end
+#%w{ log4j.properties jaas-loginmodule.conf apitoken.aclpolicy admin.aclpolicy }.each do |cf|
+#	cookbook_file "/etc/rundeck/#{cf}" do
+#		source cf
+#		owner 'rundeck'
+#		group 'rundeck'
+#		mode 00644
+#		action :create
+#	end
+#end
 
 cookbook_file "/etc/rundeck/realm.properties" do
 	source 'realm.properties'
@@ -161,6 +162,16 @@ rundeck_user adminobj['username'] do
 	encryption 'md5'
 	roles %w{ user admin architect deploy build }
 	action :create
+end
+
+node['rundeck']['admins'].each do |user|
+  pass = data_bag_item('users', user)
+  rundeck_user user do
+    password pass['auth_basic']
+    encryption 'httppass'
+    roles %w{ user admin architect deploy build }
+    action :create
+  end
 end
 
 # Log rotation

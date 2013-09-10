@@ -19,8 +19,6 @@
 # limitations under the License.
 #
 
-include_recipe 'supervisor'
-
 if Chef::Config[:solo]
 	adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id']) rescue {
 		'client_key' => node['rundeck']['chef']['client_key'],
@@ -70,7 +68,7 @@ template '/var/lib/rundeck/.chef/knife.rb' do
 		:user => adminobj['client_name'],
 		:chef_server_url => Chef::Config['chef_server_url']
 	})
-	notifies :restart, 'supervisor_service[chef-rundeck]'
+	notifies :restart, 'service[chef-rundeck]'
 end
 
 file "/var/lib/rundeck/.chef/#{adminobj['client_name']}.pem" do
@@ -81,18 +79,18 @@ file "/var/lib/rundeck/.chef/#{adminobj['client_name']}.pem" do
 	content adminobj['client_key']
 end
 
-# Create a Supervisor service that runs chef-rundeck
-supervisor_service 'chef-rundeck' do
-	command "/opt/chef/embedded/bin/chef-rundeck -c /var/lib/rundeck/.chef/knife.rb -l -u #{node['rundeck']['ssh']['user']} -w #{Chef::Config['chef_server_url'].sub(':4000',':4040')} -p #{node['rundeck']['chef']['port']} -s #{node['rundeck']['ssh']['port']}"
-	numprocs 1
-	directory '/var/lib/rundeck'
-	autostart true
-	autorestart :unexpected
-	startsecs 15
-	stopwaitsecs 15
-	stdout_logfile 'NONE'
-	stopsignal :TERM
-	user 'rundeck'
-	redirect_stderr true
-	action :enable
+template '/etc/init.d/chef-rundeck' do
+  action :create
+  source 'init.d-chef-rundeck.erb'
+  mode 00755
+  variables({
+    :command => "\"/opt/chef/embedded/bin/chef-rundeck -c /var/lib/rundeck/.chef/knife.rb -u #{node['rundeck']['ssh']['user']} -w #{Chef::Config['chef_server_url'].sub(':4000',':4040')} -p #{node['rundeck']['chef']['port']} -s #{node['rundeck']['ssh']['port']}\""
+  })
+  notifies :restart, 'service[chef-rundeck]'
 end
+
+service 'chef-rundeck' do
+  supports :status => true, :restart => true
+  action [ :enable, :start ]
+end
+
