@@ -32,6 +32,23 @@ Vagrant.configure('2') do |config|
   config.vm.box = 'ubuntu'
   config.vm.hostname = 'rundeck'
   config.vm.network :private_network, ip: '172.16.6.2'
+  config.vm.provider "virtualbox" do |v|
+    v.customize [
+                 "modifyvm", :id,
+                 "--memory", "1024",
+                 "--cpus", "2",
+                 "--chipset", "ich9",
+                 "--hwvirtex", "on",
+                 "--hwvirtexexcl", "on",
+                 "--nestedpaging", "on",
+                 "--largepages", "on",
+                 "--vtxvpid", "on",
+                 "--pae", "on",
+                 "--ioapic", "on",
+                 "--nictype1", "virtio"
+                ]
+
+  end
   config.vm.provision :chef_solo do |chef|
     chef.arguments = '-Fdoc'
     chef.json = { 
