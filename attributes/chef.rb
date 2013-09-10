@@ -20,6 +20,9 @@
 default['rundeck']['chef']['port']        = 9998
 default['rundeck']['chef']['client_key']  = ''
 default['rundeck']['chef']['client_name'] = ''
+default['rundeck']['chef']['git']['repo'] = 'https://github.com/albertsj1/chef-rundeck.git'
+default['rundeck']['chef']['git']['branch'] = 'refactor'
+default['rundeck']['chef']['version'] = '0.2.2.pre'
 
 default['rundeck']['chef']['init.d']['name'] = 'chef-rundeck'
 default['rundeck']['chef']['init.d']['user'] = 'rundeck'

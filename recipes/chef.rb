@@ -40,14 +40,14 @@ end
 # Currently installing a better version than the original Opscode one, pending a pull request
 
 git "#{Chef::Config['file_cache_path']}/chef-rundeck-gem" do
-	repository 'git://github.com/priestjim/chef-rundeck-gem.git'
-	reference 'master'
+	repository node['rundeck']['chef']['git']['source']
+	reference node['rundeck']['chef']['git']['branch']
 	action :sync
 	notifies :install, 'chef_gem[chef-rundeck]'
 end
 
 chef_gem 'chef-rundeck' do
-	source "#{Chef::Config['file_cache_path']}/chef-rundeck-gem/chef-rundeck-0.2.2.gem"
+	source "#{Chef::Config['file_cache_path']}/chef-rundeck-gem/chef-rundeck-#{node['rundeck']['chef']['version']}.gem"
 	action :nothing
 end
 
