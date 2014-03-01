@@ -1,21 +1,21 @@
 #!/bin/bash
-# <%= node['rundeck']['chef']['init.d']['name'] %>
-# chkconfig: <%= node['rundeck']['chef']['init.d']['runlevels'] %> <%= node['rundeck']['chef']['init.d']['startorder'] %> <%= node['rundeck']['chef']['init.d']['stoporder'] %>
-# description: <%= node['rundeck']['chef']['init.d']['name'] %>
-# processname: <%= node['rundeck']['chef']['init.d']['name'] %>
+# <%= node['chef-rundeck']['init.d']['name'] %>
+# chkconfig: <%= node['chef-rundeck']['init.d']['runlevels'] %> <%= node['chef-rundeck']['init.d']['startorder'] %> <%= node['chef-rundeck']['init.d']['stoporder'] %>
+# description: <%= node['chef-rundeck']['init.d']['name'] %>
+# processname: <%= node['chef-rundeck']['init.d']['name'] %>
 
-COMMAND=<%= @command %>
-NAME=<%= node['rundeck']['chef']['init.d']['name'] %>
-USER=<%= node['rundeck']['chef']['init.d']['user'] %>
-LOGFILE=<%= node['rundeck']['chef']['init.d']['logfile'] %>
-DESC=<%= node['rundeck']['chef']['init.d']['name'] %>
+COMMAND="<%= @command %>"
+NAME=<%= node['chef-rundeck']['init.d']['name'] %>
+USER=<%= node['chef-rundeck']['init.d']['user'] %>
+LOGFILE=<%= node['chef-rundeck']['init.d']['logfile'] %>
+DESC=<%= node['chef-rundeck']['init.d']['name'] %>
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
  
 case "$1" in
 start)
         printf "%-50s" "Starting $DESC..."
-        PID=`runuser -c "$COMMAND" - $USER  >> $LOGFILE 2>&1 & echo $!`
+        PID=`su $USER -s /bin/bash -c "$COMMAND" >> $LOGFILE 2>&1 & echo $!`
         #echo "Saving PID" $PID " to " $PIDFILE
         if [ -z $PID ]; then
             printf "%s\n" "Fail"

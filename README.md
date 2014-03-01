@@ -63,6 +63,8 @@ Attributes are split in files semantically:
 
 * `node['rundeck']['logging_level']` - The default logging level for Rundeck.
 
+* `node['rundeck']['jaas']` - Use built in internal realms.properties file, (options 'activedirectory', default 'internal')
+
 * `node['rundeck']['admin']['encrypted_data_bag']` - Enables loading the Rundeck administrator
   credentials using Chef encrypted data bags instead of simple ones.
 
@@ -92,11 +94,11 @@ Attributes are split in files semantically:
 
 ## chef.rb
 
-* `node['rundeck']['chef']['port']` - TCP port to run the chef-rundeck discovery service
+* `node['chef-rundeck']['port']` - TCP port to run the chef-rundeck discovery service
 
-* `node['rundeck']['chef']['client_key']` - Hardcoded Chef client key in case data bags are not available
+* `node['chef-rundeck']['client_key']` - Hardcoded Chef client key in case data bags are not available
 
-* `node['rundeck']['chef']['port']` - Hardcoded Chef client name in case data bags are not available
+* `node['chef-rundeck']['client_name']` - Hardcoded Chef client name in case data bags are not available
 
 ## ssh.rb
 

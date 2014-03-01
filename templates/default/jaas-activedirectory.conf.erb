@@ -1,0 +1,41 @@
+activedirectory {
+
+  // try LDAP login first...
+  com.dtolabs.rundeck.jetty.jaas.JettyCachingLdapLoginModule sufficient
+
+    contextFactory="com.sun.jndi.ldap.LdapCtxFactory"
+    providerUrl="<%=@ldap[:providerurl]%>"
+
+    //authenticationMethod="simple"
+
+    <% if ! @ldap[:binddn].to_s.empty? %>
+    bindDn="<%=@ldap[:binddn]%>"
+    <% end %>
+    <% if ! @ldap[:bindpasswd].to_s.empty? %>
+    bindPassword="<%=@ldap[:bindpasswd]%>"
+    <% end %>
+
+    forceBindingLogin="true"
+
+    userBaseDn="<%=@ldap[:userbasedn]%>"
+    userObjectClass="<%=@ldap[:userobjectclass]%>"
+    userIdAttribute="<%=@ldap[:useridattribute]%>"
+    // (unused when forceBindingLogin is true)
+    //userPasswordAttribute="unicodePwd"
+    //userRdnAttribute="cn"
+
+    roleBaseDn="<%=@ldap[:rolebasedn]%>"
+    roleObjectClass="<%=@ldap[:roleobjectclass]%>"
+    roleMemberAttribute="<%=@ldap[:rolememberattribute]%>"
+    roleNameAttribute="<%=@ldap[:rolenameattribute]%>"
+
+    cacheDurationMillis="300000"
+    reportStatistics="true"
+    debug="true";
+
+  // otherwise, fall back to local credentials file...
+  org.eclipse.jetty.plus.jaas.spi.PropertyFileLoginModule required
+
+    debug="true"
+    file="<%=@configdir%>/realm.properties";
+};

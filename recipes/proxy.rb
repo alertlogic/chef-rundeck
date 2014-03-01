@@ -30,14 +30,14 @@ else
 end
 
 template "#{node[srv]['dir']}/sites-available/rundeck" do
-	source 'nginx_proxy.erb'
-	owner 'root'
-	group 'root'
-	mode 00644
+  source 'nginx_proxy.erb'
+  owner 'root'
+  group 'root'
+  mode 00644
   variables({ :srv => srv })
-	if(::File.symlink?("#{node[srv]['dir']}/sites-enabled/rundeck"))
-		notifies :reload, 'service[nginx]', :immediately
-	end
+  if(::File.symlink?("#{node[srv]['dir']}/sites-enabled/rundeck"))
+    notifies :reload, 'service[nginx]', :immediately
+  end
 end
 
 if node['recipes'].include?('nginx')

@@ -20,63 +20,81 @@
 #
 
 if Chef::Config[:solo]
-	adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id']) rescue {
-		'client_key' => node['rundeck']['chef']['client_key'],
-		'client_name' => node['rundeck']['chef']['client_name']
-	}
+  adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id']) rescue {
+    'client_key' => node['chef-rundeck']['client_key'],
+    'client_name' => node['chef-rundeck']['client_name']
+  }
 elsif node['rundeck']['admin']['encrypted_data_bag']
-	adminobj = Chef::EncryptedDataBagItem.load(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id'])
+  adminobj = Chef::EncryptedDataBagItem.load(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id'])
 else
-	adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id'])
+  adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id'])
 end
 
 if adminobj['client_key'].nil? || adminobj['client_key'].empty? || adminobj['client_name'].nil? || adminobj['client_name'].empty?
-	Chef::Log.info('Could not locate a valid client/PEM key pair for chef-rundeck. Please define one!')
-	return true
+  raise 'Could not locate a valid client/PEM key pair for chef-rundeck. Please define one!'
 end
 
 # Install the chef-rundeck gem on the Chef omnibus package. Useful workaround instead of installing RVM, a system Ruby etc
 # and it offers minimal system pollution
 # Currently installing a better version than the original Opscode one, pending a pull request
 
-git "#{Chef::Config['file_cache_path']}/chef-rundeck-gem" do
-	repository node['rundeck']['chef']['git']['source']
-	reference node['rundeck']['chef']['git']['branch']
-	action :sync
-	notifies :install, 'chef_gem[chef-rundeck]'
+#|git "#{Chef::Config['file_cache_path']}/chef-rundeck-gem" do
+#|  repository node['chef-rundeck']['git']['repo']
+#|  reference node['chef-rundeck']['git']['branch']
+#|  action :sync
+#|end
+#|
+#|require 'rubygems/commands/build_command'
+#|ruby_block 'build-chef-rundeck' do
+#|  block do
+#|    x = Gem::Commands::BuildCommand.new
+#|    Dir.chdir("#{Chef::Config['file_cache_path']}/chef-rundeck-gem") {
+#|      x.invoke "chef-rundeck.gemspec"
+#|    }
+#|  end
+#|  action :create
+#|end
+#|
+#|chef_gem 'chef-rundeck' do
+#|  source Dir["#{Chef::Config['file_cache_path']}/chef-rundeck-gem/chef-rundeck-*.gem"][0]
+#|  action :install
+#|end
+
+gem_package 'sinatra'
+
+git "/opt/chef-rundeck" do
+  repository node['chef-rundeck']['git']['repo']
+  reference node['chef-rundeck']['git']['branch']
+  action :sync
 end
 
-chef_gem 'chef-rundeck' do
-	source "#{Chef::Config['file_cache_path']}/chef-rundeck-gem/chef-rundeck-#{node['rundeck']['chef']['version']}.gem"
-	action :nothing
-end
 
 # Create the knife.rb for chef-rundeck to read
 directory '/var/lib/rundeck/.chef' do
-	owner 'rundeck'
-	group 'rundeck'
-	mode 00755
-	action :create
+  owner 'rundeck'
+  group 'rundeck'
+  mode 00755
+  action :create
 end
 
 template '/var/lib/rundeck/.chef/knife.rb' do
-	source 'knife.rb.erb'
-	owner 'rundeck'
-	group 'rundeck'
-	mode 00644
-	variables({
-		:user => adminobj['client_name'],
-		:chef_server_url => Chef::Config['chef_server_url']
-	})
-	notifies :restart, 'service[chef-rundeck]'
+  source 'knife.rb.erb'
+  owner 'rundeck'
+  group 'rundeck'
+  mode 00644
+  variables({
+    :user => adminobj['client_name'],
+    :chef_server_url => node['chef-rundeck']['server_url']
+  })
+  notifies :restart, 'service[chef-rundeck]'
 end
 
 file "/var/lib/rundeck/.chef/#{adminobj['client_name']}.pem" do
-	action :create
-	owner 'rundeck'
-	group 'rundeck'
-	mode 00644
-	content adminobj['client_key']
+  action :create
+  owner 'rundeck'
+  group 'rundeck'
+  mode 00644
+  content adminobj['client_key']
 end
 
 template '/etc/init.d/chef-rundeck' do
@@ -84,7 +102,7 @@ template '/etc/init.d/chef-rundeck' do
   source 'init.d-chef-rundeck.erb'
   mode 00755
   variables({
-    :command => "\"/opt/chef/embedded/bin/chef-rundeck -c /var/lib/rundeck/.chef/knife.rb -u #{node['rundeck']['ssh']['user']} -w #{Chef::Config['chef_server_url'].sub(':4000',':4040')} -p #{node['rundeck']['chef']['port']} -s #{node['rundeck']['ssh']['port']}\""
+    :command => "/opt/chef-rundeck/bin/chef-rundeck -c /var/lib/rundeck/.chef/knife.rb -a #{node['chef-rundeck']['server_url']} -o 0.0.0.0 -p #{node['chef-rundeck']['port']} -u #{node['rundeck']['ssh']['user']}"
   })
   notifies :restart, 'service[chef-rundeck]'
 end
@@ -93,4 +111,3 @@ service 'chef-rundeck' do
   supports :status => true, :restart => true
   action [ :enable, :start ]
 end
-

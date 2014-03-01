@@ -60,7 +60,7 @@ framework.crypto.jarSigning.aliasName =
 
 
 # the hostname of this rdeck node (likely matches hostname)
-framework.node.hostname = <%= node['fqdn'] %>
+framework.node.hostname = <%= node['rundeck']['hostname'] %>
 
 # the logical name of this rdeck node (used during Node registration)
 framework.node.name = <%= node['rundeck']['node_name'] %>
