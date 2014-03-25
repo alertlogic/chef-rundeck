@@ -20,17 +20,17 @@
 #
 
 if Chef::Config[:solo]
-  adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id']) rescue {
-    'client_key' => node['chef-rundeck']['client_key'],
-    'client_name' => node['chef-rundeck']['client_name']
+  secretsobj = data_bag_item(node['rundeck']['secrets']['data_bag'], node['rundeck']['secrets']['data_bag_id']) rescue {
+    'chef_client_key' => node['chef-rundeck']['client_key']
   }
-elsif node['rundeck']['admin']['encrypted_data_bag']
-  adminobj = Chef::EncryptedDataBagItem.load(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id'])
+elsif node['rundeck']['secrets']['encrypted_data_bag']
+  secretsobj = Chef::EncryptedDataBagItem.load(node['rundeck']['secrets']['data_bag'], node['rundeck']['secrets']['data_bag_id'])
 else
-  adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id'])
+  secretsobj = data_bag_item(node['rundeck']['secrets']['data_bag'], node['rundeck']['secrets']['data_bag_id'])
 end
 
-if adminobj['client_key'].nil? || adminobj['client_key'].empty? || adminobj['client_name'].nil? || adminobj['client_name'].empty?
+if secretsobj['chef_client_key'].nil? || secretsobj['chef_client_key'].empty? ||
+   node['chef-rundeck']['client_name'].nil? || node['chef-rundeck']['client_name'].empty?
   raise 'Could not locate a valid client/PEM key pair for chef-rundeck. Please define one!'
 end
 
@@ -83,18 +83,18 @@ template '/var/lib/rundeck/.chef/knife.rb' do
   group 'rundeck'
   mode 00644
   variables({
-    :user => adminobj['client_name'],
+    :user => node['chef-rundeck']['client_name'],
     :chef_server_url => node['chef-rundeck']['server_url']
   })
   notifies :restart, 'service[chef-rundeck]'
 end
 
-file "/var/lib/rundeck/.chef/#{adminobj['client_name']}.pem" do
+file "/var/lib/rundeck/.chef/#{node['chef-rundeck']['client_name']}.pem" do
   action :create
   owner 'rundeck'
   group 'rundeck'
   mode 00644
-  content adminobj['client_key']
+  content secretsobj['chef_client_key']
 end
 
 template '/etc/init.d/chef-rundeck' do

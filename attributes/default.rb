@@ -44,20 +44,39 @@ default['rundeck']['jaas']          = "internal"
 default['rundeck']['required_role'] = "user"
 
 
+# --- Optional databag for secrets ---
+# Chef-solo runs may not want to use databags.
+# If used, should contain keys:
+#    'admin_password'
+#    'ssh_user_priv_key'
+#    'chef_client_key'
+
+default['rundeck']['secrets']['encrypted_data_bag'] = true
+default['rundeck']['secrets']['data_bag']           = 'credentials'
+default['rundeck']['secrets']['data_bag_id']        = 'rundeck'
+
+
 # --- Administrator credentials ---
 
-default['rundeck']['admin']['encrypted_data_bag'] = true
-default['rundeck']['admin']['data_bag']           = 'credentials'
-default['rundeck']['admin']['data_bag_id']        = 'rundeck'
-# For Solo runs with no data bags
-default['rundeck']['admin']['username']           = 'admin'
-default['rundeck']['admin']['password']           = 'admin'
-default['rundeck']['admin']['ssh_key']            = ''
+default['rundeck']['admin']['username'] = 'admin'
+default['rundeck']['admin']['password'] = 'admin'   # used unless databag used (admin_password)
 
 
-# --- Rundeck 'admin' users ---
+# --- Rundeck additional 'admin' users ---
 
 default['rundeck']['admins'] = %w{ }
+
+
+# --- SSH to nodes ---
+
+default['rundeck']['ssh']['user']          = 'rundeck'
+default['rundeck']['ssh']['user_uid']      = 9998
+default['rundeck']['ssh']['user_gid']      = 9998
+default['rundeck']['ssh']['user_pub_key']  = ''
+default['rundeck']['ssh']['user_priv_key'] = ''    # used unless databag used (ssh_user_priv_key)
+
+default['rundeck']['ssh']['timeout'] = 300000
+default['rundeck']['ssh']['port']    = 22
 
 
 # --- Email notifications ---
@@ -78,7 +97,7 @@ default['rundeck']['mail']['recipients_field']    = "['email']"
 # --- Java tuning ---
 
 default['rundeck']['java']['enable_jmx']        = false
-default['rundeck']['java']['allocated_memory']  = "#{(node['memory']['total'].to_i * 0.5 ).floor / 1024}m"
+default['rundeck']['java']['allocated_memory']  = "#{(node['memory']['total'].to_i * 0.25 ).floor / 1024}m"
 default['rundeck']['java']['thread_stack_size'] = '256k'
 
 
@@ -86,17 +105,6 @@ default['rundeck']['java']['thread_stack_size'] = '256k'
 
 default['rundeck']['proxy']['hostname'] = 'rundeck'
 default['rundeck']['proxy']['default']  = false
-
-
-# --- SSH to nodes ---
-
-default['rundeck']['ssh']['user']         = 'rundeck'
-default['rundeck']['ssh']['user_uid']     = 9998
-default['rundeck']['ssh']['user_gid']     = 9998
-default['rundeck']['ssh']['user_pub_key'] = ""
-
-default['rundeck']['ssh']['timeout'] = 30000
-default['rundeck']['ssh']['port']    = 22
 
 
 # --- LDAP ---
@@ -116,8 +124,8 @@ default['rundeck']['ldap']['rolenameattribute']   = "cn"
 # --- Chef integration ---
 
 default['chef-rundeck']['port']        = 9980
-default['chef-rundeck']['client_key']  = ''
 default['chef-rundeck']['client_name'] = ''
+default['chef-rundeck']['client_key']  = ''            # used unless databag used (chef_client_key)
 default['chef-rundeck']['server_url']  = Chef::Config['chef_server_url']
 
 default['chef-rundeck']['git']['repo']   = 'https://github.com/oswaldlabs/chef-rundeck.git'

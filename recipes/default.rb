@@ -75,15 +75,14 @@ file '/etc/rundeck/realm.properties' do
 end
 
 if Chef::Config[:solo]
-  adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id']) rescue {
-    'username' => node['rundeck']['admin']['username'],
-    'password' => node['rundeck']['admin']['password'],
-    'ssh_key'  => node['rundeck']['admin']['ssh_key']
+  secretsobj = data_bag_item(node['rundeck']['secrets']['data_bag'], node['rundeck']['secrets']['data_bag_id']) rescue {
+    'admin_password'    => node['rundeck']['admin']['password'],
+    'ssh_user_priv_key' => node['rundeck']['ssh']['user_priv_key']
   }
-elsif node['rundeck']['admin']['encrypted_data_bag']
-  adminobj = Chef::EncryptedDataBagItem.load(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id'])
+elsif node['rundeck']['secrets']['encrypted_data_bag']
+  secretsobj = Chef::EncryptedDataBagItem.load(node['rundeck']['secrets']['data_bag'], node['rundeck']['secrets']['data_bag_id'])
 else
-  adminobj = data_bag_item(node['rundeck']['admin']['data_bag'], node['rundeck']['admin']['data_bag_id'])
+  secretsobj = data_bag_item(node['rundeck']['secrets']['data_bag'], node['rundeck']['secrets']['data_bag_id'])
 end
 
 if Chef::Config[:solo]
@@ -106,8 +105,8 @@ template '/etc/rundeck/framework.properties' do
   group 'rundeck'
   mode 00644
   variables({
-    :admin_user => adminobj['username'],
-    :admin_pass => adminobj['password'],
+    :admin_user => node['rundeck']['admin']['username'],
+    :admin_pass => secretsobj['admin_password'],
     :recipients => recipients
   })
   notifies :restart, 'service[rundeckd]'
@@ -177,8 +176,8 @@ cookbook_file "/etc/rundeck/realm.properties" do
   action :create_if_missing
 end
 
-rundeck_user adminobj['username'] do
-  password adminobj['password']
+rundeck_user node['rundeck']['admin']['username'] do
+  password secretsobj['admin_password']
   encryption 'md5'
   roles [ node['rundeck']['required_role'], 'user', 'admin', 'architect', 'deploy', 'build' ]
   action :create
@@ -205,8 +204,8 @@ logrotate_app 'rundeck' do
   options [ 'missingok', 'delaycompress', 'notifempty', 'compress', 'sharedscripts', 'copytruncate' ]
 end
 
-# SSH private key. Stored in the data bag item as ssh_key
-unless adminobj['ssh_key'].nil? || adminobj['ssh_key'].empty?
+# SSH private key. Stored in the data bag item as ssh_user_priv_key
+unless secretsobj['ssh_user_priv_key'].nil? || secretsobj['ssh_user_priv_key'].empty?
 
   directory '/var/lib/rundeck/.ssh' do
     owner 'rundeck'
@@ -220,7 +219,7 @@ unless adminobj['ssh_key'].nil? || adminobj['ssh_key'].empty?
     owner 'rundeck'
     group 'rundeck'
     mode 00600
-    content adminobj['ssh_key']
+    content secretsobj['ssh_user_priv_key']
   end
 
 end
