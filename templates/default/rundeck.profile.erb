@@ -35,7 +35,7 @@ export RDECK_JVM="-server -Djava.security.auth.login.config=/etc/rundeck/<%=auth
 	-Drundeck.server.configDir=/etc/rundeck \
 	-Dserver.datastore.path=/var/lib/rundeck/data \
 	-Drundeck.server.serverDir=/var/lib/rundeck \
-	-Drdeck.projects=/var/rundeck/projects \
+	-Drdeck.projects=<%= node['rundeck']['projects_dir'] %> \
 	-Drdeck.runlogs=/var/lib/rundeck/logs \
 	-Drundeck.config.location=/etc/rundeck/rundeck-config.properties"
 

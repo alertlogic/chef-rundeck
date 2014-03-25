@@ -96,8 +96,8 @@ framework.rdeck.base = /var/lib/rundeck
 #
 # project spaces containing resources
 #
-framework.projects.dir= /var/rundeck/projects
-framework.depots.dir= /var/rundeck/projects
+framework.projects.dir= <%= node['rundeck']['projects_dir'] %>
+framework.depots.dir= <%= node['rundeck']['projects_dir'] %>
 
 #
 # directory containing instance based property files
