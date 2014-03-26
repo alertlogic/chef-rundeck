@@ -69,6 +69,14 @@ when 'rhel'
 
 end
 
+directory node['rundeck']['projects_dir'] do
+  owner "rundeck"
+  group "rundeck"
+  mode 00755
+  recursive true
+  action :create
+end
+
 # Erase the default realm.properties after package install, we manage that
 file '/etc/rundeck/realm.properties' do
   action :delete
@@ -227,5 +235,5 @@ end
 service 'rundeckd' do
   provider(Chef::Provider::Service::Upstart) if platform?('ubuntu') && node['platform_version'].to_f >= 12.04
   supports :status => true, :restart => true
-  action [ :enable, :start ]
+  action :enable
 end
