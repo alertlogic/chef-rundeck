@@ -42,6 +42,7 @@ default['rundeck']['logging_level'] = 'INFO'
 default['rundeck']['jaas']          = "internal"
 default['rundeck']['required_role'] = "user"
 default['rundeck']['projects_dir']  = "/var/rundeck/projects"
+default['rundeck']['token_file']    = "/etc/rundeck/tokens.properties"
 
 
 # --- Optional databag for secrets ---

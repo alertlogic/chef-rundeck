@@ -196,3 +196,8 @@ framework.ssh.timeout = <%= node['rundeck']['ssh']['timeout'] %>
 # framework.log.run-exec.console.format =[%user@%node %command][%level] %message
 #
 framework.log.run-exec.console.format =[%user@%node %command][%level] %message
+
+#
+# Admin Token for API
+#
+rundeck.tokens.file=<%= node['rundeck']['token_file'] %>
