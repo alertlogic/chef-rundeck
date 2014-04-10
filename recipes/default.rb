@@ -41,8 +41,6 @@ when 'debian'
 
 when 'rhel'
 
-  package 'java' # Needed for RPM dependency
-
   remote_file "#{Chef::Config['file_cache_path']}/rundeck-config-#{node['rundeck']['rpm_version']}.noarch.rpm" do
     owner 'root'
     group 'root'
